@@ -1,22 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-
-namespace MVP.Api.TestApp
+﻿namespace MVP.Api.TestApp
 {
+    using System;
+
+    using Windows.ApplicationModel;
+    using Windows.ApplicationModel.Activation;
+    using Windows.UI.Xaml;
+    using Windows.UI.Xaml.Controls;
+    using Windows.UI.Xaml.Navigation;
+
     using WinUX.Xaml;
 
     /// <summary>
@@ -24,11 +15,11 @@ namespace MVP.Api.TestApp
     /// </summary>
     public sealed partial class App : Application
     {
-        public const string ClientId = "00000000481CAF70";
+        public const string ClientId = "INSERT_CLIENT_ID";
 
-        public const string ClientSecret = "mciGV3jyNrCnbB9anpU2moN";
+        public const string ClientSecret = "INSERT_CLIENT_SECRET";
 
-        public const string SubscriptionKey = "151ee67f81c142f2a51edd318dc5be7d";
+        public const string SubscriptionKey = "INSERT_SUBSCRIPTION_KEY";
 
         public static ApiClient API { get; set; }
 
@@ -39,7 +30,7 @@ namespace MVP.Api.TestApp
         public App()
         {
             this.InitializeComponent();
-            this.Suspending += OnSuspending;
+            this.Suspending += this.OnSuspending;
 
             API = new ApiClient(ClientId, ClientSecret, SubscriptionKey);
         }
@@ -51,12 +42,6 @@ namespace MVP.Api.TestApp
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-#if DEBUG
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                this.DebugSettings.EnableFrameRateCounter = true;
-            }
-#endif
             Frame rootFrame = Window.Current.Content as Frame;
 
             // Do not repeat app initialization when the Window already has content,
@@ -66,11 +51,11 @@ namespace MVP.Api.TestApp
                 // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
 
-                rootFrame.NavigationFailed += OnNavigationFailed;
+                rootFrame.NavigationFailed += this.OnNavigationFailed;
 
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
-                    //TODO: Load state from previously suspended application
+                    // TODO: Load state from previously suspended application
                 }
 
                 UIDispatcher.Initialize();
@@ -88,6 +73,7 @@ namespace MVP.Api.TestApp
                     // parameter
                     rootFrame.Navigate(typeof(MainPage), e.Arguments);
                 }
+
                 // Ensure the current window is active
                 Window.Current.Activate();
             }
@@ -96,7 +82,6 @@ namespace MVP.Api.TestApp
         protected override void OnActivated(IActivatedEventArgs args)
         {
             // ToDo
-
             base.OnActivated(args);
         }
 
@@ -120,7 +105,8 @@ namespace MVP.Api.TestApp
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
-            //TODO: Save application state and stop any background activity
+
+            // TODO: Save application state and stop any background activity
             deferral.Complete();
         }
     }

@@ -29,9 +29,9 @@
                 Style="{StaticResource CenteredButtonStyle}" />
 
             <Button
-                x:Name="GetProfileBtn"
-                Click="OnGetProfileClicked"
-                Content="GetProfile"
+                x:Name="PerformApiTestBtn"
+                Click="OnPerformApiTestClicked"
+                Content="Perform API tests"
                 Style="{StaticResource CenteredButtonStyle}" />
 
             <Button

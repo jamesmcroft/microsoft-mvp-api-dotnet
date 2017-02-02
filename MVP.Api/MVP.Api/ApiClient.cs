@@ -1,5 +1,6 @@
 ﻿namespace MVP.Api
 {
+    using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading;
@@ -90,7 +91,7 @@
             return await postRequest.ExecuteAsync<TResponse>(cts);
         }
 
-        private async Task<TResponse> PutAsync<TResponse>(
+        private async Task<bool> PutAsync(
             string endpoint,
             object data,
             bool useCredentials = true,
@@ -105,10 +106,11 @@
                                  ? new JsonPutNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
                                  : new JsonPutNetworkRequest(new HttpClient(), uri, json);
 
-            return await putRequest.ExecuteAsync<TResponse>(cts);
+            await putRequest.ExecuteAsync<bool>(cts);
+            return true;
         }
 
-        private async Task<TResponse> DeleteAsync<TResponse>(
+        private async Task<bool> DeleteAsync(
             string endpoint,
             bool useCredentials = true,
             string overrideUri = null,
@@ -120,7 +122,8 @@
                                     ? new JsonDeleteNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
                                     : new JsonDeleteNetworkRequest(new HttpClient(), uri);
 
-            return await deleteRequest.ExecuteAsync<TResponse>(cts);
+            await deleteRequest.ExecuteAsync<bool>(cts);
+            return true;
         }
 
         private Dictionary<string, string> GetRequestHeaders()

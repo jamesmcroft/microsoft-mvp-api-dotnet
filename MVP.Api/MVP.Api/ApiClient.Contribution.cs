@@ -52,12 +52,12 @@
             Contribution contribution,
             CancellationTokenSource cts = null)
         {
-            return await this.PutAsync<bool>(ContributionEndpoint, contribution, true, null, cts);
+            return await this.PutAsync(ContributionEndpoint, contribution, true, null, cts);
         }
 
         public async Task<bool> DeleteContributionAsync(int id, CancellationTokenSource cts = null)
         {
-            return await this.DeleteAsync<bool>($"{ContributionEndpoint}?id={id}", true, null, cts);
+            return await this.DeleteAsync($"{ContributionEndpoint}?id={id}", true, null, cts);
         }
     }
 }
