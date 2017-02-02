@@ -1,16 +1,13 @@
 ﻿namespace MVP.Api
 {
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
     using MVP.Api.Models.MicrosoftAccount;
 
-    using WinUX;
+    using WinUX.Data.Serialization;
     using WinUX.Networking.Requests.Json;
 
     /// <summary>
@@ -18,15 +15,7 @@
     /// </summary>
     public partial class ApiClient
     {
-        private const string RedirectUri = "https://login.live.com/oauth20_desktop.srf";
-
-        private const string BaseApiUri = "https://mvpapi.azure-api.net/mvp";
-
-        private const string AuthenticationUri = "https://login.live.com/oauth20_authorize.srf";
-
-        private const string LogOutUri = "https://login.live.com/oauth20_logout.srf";
-
-        private const string TokenUri = "https://login.live.com/oauth20_token.srf";
+        private const string BaseApiUri = "https://mvpapi.azure-api.net/mvp/api";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiClient"/> class.
@@ -62,101 +51,61 @@
         /// </summary>
         public string SubscriptionKey { get; }
 
-
         /// <summary>
         /// Gets the credentials associated with the logged in Microsoft account.
         /// </summary>
         public MSACredentials Credentials { get; private set; }
 
-        /// <summary>
-        /// Constructs a URL for authentication with Microsoft services and MVP API.
-        /// </summary>
-        /// <param name="scopes">
-        /// A list of scopes to access during authentication.
-        /// </param>
-        /// <param name="redirectUrl">
-        /// An optional redirect URI.
-        /// </param>
-        /// <returns>
-        /// Returns the constructed authentication URI.
-        /// </returns>
-        public string RetrieveAuthenticationUri(IEnumerable<MSAScope> scopes, string redirectUrl = null)
+        private async Task<TResponse> GetAsync<TResponse>(string endpoint, CancellationTokenSource cts = null)
         {
-            return this.RetrieveAuthenticationUri(scopes.Select(x => x.GetDescriptionAttribute()), redirectUrl);
+            var getRequest = new JsonGetNetworkRequest(
+                new HttpClient(),
+                $"{BaseApiUri}/{endpoint}",
+                this.GetRequestHeaders());
+
+            return await getRequest.ExecuteAsync<TResponse>(cts);
         }
 
-        /// <summary>
-        /// Constructs a URL for authentication with Microsoft services and MVP API.
-        /// </summary>
-        /// <param name="scopes">
-        /// A list of scopes as a string to access during authentication.
-        /// </param>
-        /// <param name="redirectUrl">
-        /// An optional redirect URI.
-        /// </param>
-        /// <returns>
-        /// Returns the constructed authentication URI.
-        /// </returns>
-        public string RetrieveAuthenticationUri(IEnumerable<string> scopes, string redirectUrl = null)
-        {
-            var uri = new UriBuilder(AuthenticationUri);
-            var query = new StringBuilder();
-
-            query.AppendFormat("redirect_uri={0}", Uri.EscapeUriString(redirectUrl ?? RedirectUri));
-            query.AppendFormat("&client_id={0}", Uri.EscapeUriString(this.ClientId));
-
-            var scopesStr = string.Join(" ", scopes);
-            query.AppendFormat("&scope={0}", Uri.EscapeUriString(scopesStr));
-            query.Append("&response_type=code");
-
-            uri.Query = query.ToString();
-
-            return uri.Uri.ToString();
-        }
-
-        public Task<MSACredentials> ExchangeCodeAsync(
-            string code,
-            bool isTokenRefresh = false,
+        private async Task<TResponse> PostAsync<TResponse>(
+            string endpoint,
+            object data,
             CancellationTokenSource cts = null)
         {
-            if (string.IsNullOrWhiteSpace(code))
-            {
-                throw new ArgumentNullException(nameof(code), "The code for exchange cannot be null or empty.");
-            }
+            var json = SerializationService.Json.Serialize(data);
 
-            return Task.FromResult(default(MSACredentials));
+            var postRequest = new JsonPostNetworkRequest(
+                new HttpClient(),
+                $"{BaseApiUri}/{endpoint}",
+                json,
+                this.GetRequestHeaders());
+
+            return await postRequest.ExecuteAsync<TResponse>(cts);
         }
 
-        /// <summary>
-        /// Logs out the user from the Microsoft services asynchronously.
-        /// </summary>
-        /// <returns>
-        /// Returns a value indicating whether the logout was successful.
-        /// </returns>
-        public async Task<bool> LogOutAsync()
+        private async Task<TResponse> PutAsync<TResponse>(
+            string endpoint,
+            object data,
+            CancellationTokenSource cts = null)
         {
-            var logoutSuccess = false;
-            try
-            {
-                var uri =
-                    $"{LogOutUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}";
+            var json = SerializationService.Json.Serialize(data);
 
-                var client = new HttpClient();
-                var response = await client.GetAsync(uri);
-                logoutSuccess = response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-#endif
-            }
-            finally
-            {
-                this.Credentials = null;
-            }
+            var putRequest = new JsonPutNetworkRequest(
+                new HttpClient(),
+                $"{BaseApiUri}/{endpoint}",
+                json,
+                this.GetRequestHeaders());
 
-            return logoutSuccess;
+            return await putRequest.ExecuteAsync<TResponse>(cts);
+        }
+
+        private async Task<TResponse> DeleteAsync<TResponse>(string endpoint, CancellationTokenSource cts = null)
+        {
+            var deleteRequest = new JsonDeleteNetworkRequest(
+                new HttpClient(),
+                $"{BaseApiUri}/{endpoint}",
+                this.GetRequestHeaders());
+
+            return await deleteRequest.ExecuteAsync<TResponse>(cts);
         }
 
         private Dictionary<string, string> GetRequestHeaders()
@@ -168,7 +117,8 @@
                                       {
                                           "Authorization",
                                           $"Bearer {this.Credentials.AccessToken}"
-                                      }
+                                      },
+                                      { "Ocp-Apim-Subscription-Key", this.SubscriptionKey }
                                   };
                 return headers;
             }

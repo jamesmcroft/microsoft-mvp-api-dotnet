@@ -34,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ApiClient.Auth.cs" />
     <Compile Include="ApiClient.cs" />
     <Compile Include="Models\MicrosoftAccount\MSACredentials.cs" />
     <Compile Include="Models\MicrosoftAccount\MSAScope.cs" />
