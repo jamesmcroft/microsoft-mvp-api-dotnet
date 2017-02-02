@@ -35,6 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApiClient.Auth.cs" />
+    <Compile Include="ApiClient.Contribution.cs" />
     <Compile Include="ApiClient.cs" />
     <Compile Include="ApiClient.OnlineIdentity.cs" />
     <Compile Include="ApiClient.Profile.cs" />
@@ -45,6 +46,7 @@
     <Compile Include="Models\Activity.cs" />
     <Compile Include="Models\AwardRecognition.cs" />
     <Compile Include="Models\Certification.cs" />
+    <Compile Include="Models\AwardContribution.cs" />
     <Compile Include="Models\Metadata.cs" />
     <Compile Include="Models\Contribution.cs" />
     <Compile Include="Models\ContributionTechnology.cs" />

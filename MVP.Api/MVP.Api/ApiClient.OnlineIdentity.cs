@@ -32,6 +32,18 @@
             return await this.GetAsync<OnlineIdentity>($"{OnlineIdentityEndpoint}/{id}", true, null, cts);
         }
 
+        public async Task<OnlineIdentityBase> AddOnlineIdentityAsync(
+            OnlineIdentity identity,
+            CancellationTokenSource cts = null)
+        {
+            return await this.PostAsync<OnlineIdentityBase>(OnlineIdentityEndpoint, identity, true, null, cts);
+        }
+
+        public async Task<bool> UpdateOnlineIdentityAsync(OnlineIdentity identity, CancellationTokenSource cts = null)
+        {
+            return await this.PutAsync<bool>(OnlineIdentityEndpoint, identity, true, null, cts);
+        }
+
         public async Task<bool> DeleteOnlineIdentityAsync(int id, CancellationTokenSource cts = null)
         {
             return await this.DeleteAsync<bool>($"{OnlineIdentityEndpoint}?id={id}", true, null, cts);
