@@ -13,7 +13,7 @@
 
     public partial class ApiClient
     {
-        private const string RedirectUri = "https://login.live.com/oauth20_desktop.srf";
+        public const string RedirectUri = "https://login.live.com/oauth20_desktop.srf";
 
         private const string AuthenticationUri = "https://login.live.com/oauth20_authorize.srf";
 
@@ -102,8 +102,8 @@
             }
 
             var uri = isTokenRefresh
-                          ? $"{TokenUri}&redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
-                          : $"{TokenUri}&redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
+                          ? $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
+                          : $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
 
             var response = await this.GetAsync<MSACredentials>("", false, uri, cts);
             this.Credentials = response;
