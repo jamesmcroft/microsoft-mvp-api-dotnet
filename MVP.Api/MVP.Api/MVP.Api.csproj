@@ -38,8 +38,25 @@
     <Compile Include="ApiClient.cs" />
     <Compile Include="ApiException.cs" />
     <Compile Include="ApiExceptionCode.cs" />
+    <Compile Include="Models\ActivityTechnology.cs" />
+    <Compile Include="Models\ActivityType.cs" />
+    <Compile Include="Models\Activity.cs" />
+    <Compile Include="Models\AwardRecognition.cs" />
+    <Compile Include="Models\Certification.cs" />
+    <Compile Include="Models\Metadata.cs" />
+    <Compile Include="Models\Contribution.cs" />
+    <Compile Include="Models\ContributionTechnology.cs" />
+    <Compile Include="Models\ContributionType.cs" />
+    <Compile Include="Models\Contributions.cs" />
     <Compile Include="Models\MicrosoftAccount\MSACredentials.cs" />
     <Compile Include="Models\MicrosoftAccount\MSAScope.cs" />
+    <Compile Include="Models\ProfileHighlight.cs" />
+    <Compile Include="Models\OnlineIdentityBase.cs" />
+    <Compile Include="Models\OnlineIdentity.cs" />
+    <Compile Include="Models\MVPProfile.cs" />
+    <Compile Include="Models\SocialNetwork.cs" />
+    <Compile Include="Models\SocialNetworkStatusCode.cs" />
+    <Compile Include="Models\ItemVisibility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
