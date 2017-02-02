@@ -36,6 +36,8 @@
   <ItemGroup>
     <Compile Include="ApiClient.Auth.cs" />
     <Compile Include="ApiClient.cs" />
+    <Compile Include="ApiClient.OnlineIdentity.cs" />
+    <Compile Include="ApiClient.Profile.cs" />
     <Compile Include="ApiException.cs" />
     <Compile Include="ApiExceptionCode.cs" />
     <Compile Include="Models\ActivityTechnology.cs" />
