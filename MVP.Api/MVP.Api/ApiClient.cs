@@ -52,16 +52,22 @@
         public string SubscriptionKey { get; }
 
         /// <summary>
-        /// Gets the credentials associated with the logged in Microsoft account.
+        /// Gets or sets the credentials associated with the logged in Microsoft account.
         /// </summary>
-        public MSACredentials Credentials { get; private set; }
+        public MSACredentials Credentials { get; set; }
 
-        private async Task<TResponse> GetAsync<TResponse>(string endpoint, CancellationTokenSource cts = null)
+        private async Task<TResponse> GetAsync<TResponse>(
+            string endpoint,
+            bool useCredentials = true,
+            string overrideUri = null,
+            CancellationTokenSource cts = null)
         {
-            var getRequest = new JsonGetNetworkRequest(
-                new HttpClient(),
-                $"{BaseApiUri}/{endpoint}",
-                this.GetRequestHeaders());
+            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+
+            var getRequest = useCredentials
+                                 ? new JsonGetNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
+                                 : new JsonGetNetworkRequest(new HttpClient(), uri);
+
 
             return await getRequest.ExecuteAsync<TResponse>(cts);
         }
@@ -69,15 +75,17 @@
         private async Task<TResponse> PostAsync<TResponse>(
             string endpoint,
             object data,
+            bool useCredentials = true,
+            string overrideUri = null,
             CancellationTokenSource cts = null)
         {
+            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+
             var json = SerializationService.Json.Serialize(data);
 
-            var postRequest = new JsonPostNetworkRequest(
-                new HttpClient(),
-                $"{BaseApiUri}/{endpoint}",
-                json,
-                this.GetRequestHeaders());
+            var postRequest = useCredentials
+                                  ? new JsonPostNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
+                                  : new JsonPostNetworkRequest(new HttpClient(), uri, json);
 
             return await postRequest.ExecuteAsync<TResponse>(cts);
         }
@@ -85,25 +93,32 @@
         private async Task<TResponse> PutAsync<TResponse>(
             string endpoint,
             object data,
+            bool useCredentials = true,
+            string overrideUri = null,
             CancellationTokenSource cts = null)
         {
+            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+
             var json = SerializationService.Json.Serialize(data);
 
-            var putRequest = new JsonPutNetworkRequest(
-                new HttpClient(),
-                $"{BaseApiUri}/{endpoint}",
-                json,
-                this.GetRequestHeaders());
+            var putRequest = useCredentials
+                                 ? new JsonPutNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
+                                 : new JsonPutNetworkRequest(new HttpClient(), uri, json);
 
             return await putRequest.ExecuteAsync<TResponse>(cts);
         }
 
-        private async Task<TResponse> DeleteAsync<TResponse>(string endpoint, CancellationTokenSource cts = null)
+        private async Task<TResponse> DeleteAsync<TResponse>(
+            string endpoint,
+            bool useCredentials = true,
+            string overrideUri = null,
+            CancellationTokenSource cts = null)
         {
-            var deleteRequest = new JsonDeleteNetworkRequest(
-                new HttpClient(),
-                $"{BaseApiUri}/{endpoint}",
-                this.GetRequestHeaders());
+            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+
+            var deleteRequest = useCredentials
+                                    ? new JsonDeleteNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
+                                    : new JsonDeleteNetworkRequest(new HttpClient(), uri);
 
             return await deleteRequest.ExecuteAsync<TResponse>(cts);
         }

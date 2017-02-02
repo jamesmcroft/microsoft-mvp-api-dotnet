@@ -36,6 +36,8 @@
   <ItemGroup>
     <Compile Include="ApiClient.Auth.cs" />
     <Compile Include="ApiClient.cs" />
+    <Compile Include="ApiException.cs" />
+    <Compile Include="ApiExceptionCode.cs" />
     <Compile Include="Models\MicrosoftAccount\MSACredentials.cs" />
     <Compile Include="Models\MicrosoftAccount\MSAScope.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
