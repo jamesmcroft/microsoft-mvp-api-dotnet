@@ -1,6 +1,5 @@
 ﻿namespace MVP.Api
 {
-    using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading;
@@ -69,8 +68,30 @@
                                  ? new JsonGetNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
                                  : new JsonGetNetworkRequest(new HttpClient(), uri);
 
+            var retryCall = false;
 
-            return await getRequest.ExecuteAsync<TResponse>(cts);
+            try
+            {
+                return await getRequest.ExecuteAsync<TResponse>(cts);
+            }
+            catch (HttpRequestException hre) when (hre.Message.Contains("401"))
+            {
+                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                if (tokenRefreshed != null)
+                {
+                    retryCall = true;
+                }
+            }
+
+            if (retryCall)
+            {
+                getRequest = useCredentials
+                                 ? new JsonGetNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
+                                 : new JsonGetNetworkRequest(new HttpClient(), uri);
+                return await getRequest.ExecuteAsync<TResponse>(cts);
+            }
+
+            return default(TResponse);
         }
 
         private async Task<TResponse> PostAsync<TResponse>(
@@ -88,7 +109,30 @@
                                   ? new JsonPostNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
                                   : new JsonPostNetworkRequest(new HttpClient(), uri, json);
 
-            return await postRequest.ExecuteAsync<TResponse>(cts);
+            var retryCall = false;
+
+            try
+            {
+                return await postRequest.ExecuteAsync<TResponse>(cts);
+            }
+            catch (HttpRequestException hre) when (hre.Message.Contains("401"))
+            {
+                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                if (tokenRefreshed != null)
+                {
+                    retryCall = true;
+                }
+            }
+
+            if (retryCall)
+            {
+                postRequest = useCredentials
+                                  ? new JsonPostNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
+                                  : new JsonPostNetworkRequest(new HttpClient(), uri, json);
+                return await postRequest.ExecuteAsync<TResponse>(cts);
+            }
+
+            return default(TResponse);
         }
 
         private async Task<bool> PutAsync(
@@ -106,8 +150,32 @@
                                  ? new JsonPutNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
                                  : new JsonPutNetworkRequest(new HttpClient(), uri, json);
 
-            await putRequest.ExecuteAsync<bool>(cts);
-            return true;
+            var retryCall = false;
+
+            try
+            {
+                await putRequest.ExecuteAsync<bool>(cts);
+                return true;
+            }
+            catch (HttpRequestException hre) when (hre.Message.Contains("401"))
+            {
+                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                if (tokenRefreshed != null)
+                {
+                    retryCall = true;
+                }
+            }
+
+            if (retryCall)
+            {
+                putRequest = useCredentials
+                                 ? new JsonPutNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
+                                 : new JsonPutNetworkRequest(new HttpClient(), uri, json);
+                await putRequest.ExecuteAsync<bool>(cts);
+                return true;
+            }
+
+            return false;
         }
 
         private async Task<bool> DeleteAsync(
@@ -122,8 +190,32 @@
                                     ? new JsonDeleteNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
                                     : new JsonDeleteNetworkRequest(new HttpClient(), uri);
 
-            await deleteRequest.ExecuteAsync<bool>(cts);
-            return true;
+            var retryCall = false;
+
+            try
+            {
+                await deleteRequest.ExecuteAsync<bool>(cts);
+                return true;
+            }
+            catch (HttpRequestException hre) when (hre.Message.Contains("401"))
+            {
+                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                if (tokenRefreshed != null)
+                {
+                    retryCall = true;
+                }
+            }
+
+            if (retryCall)
+            {
+                deleteRequest = useCredentials
+                                    ? new JsonDeleteNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
+                                    : new JsonDeleteNetworkRequest(new HttpClient(), uri);
+                await deleteRequest.ExecuteAsync<bool>(cts);
+                return true;
+            }
+
+            return false;
         }
 
         private Dictionary<string, string> GetRequestHeaders()

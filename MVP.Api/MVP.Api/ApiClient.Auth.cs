@@ -58,6 +58,15 @@
                 $"{AuthenticationUri}?redirect_uri={Uri.EscapeUriString(redirectUri ?? RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&scope={Uri.EscapeUriString(scopesStr)}&response_type=code";
         }
 
+        /// <summary>
+        /// Exchanges the stored refresh token for the authenticated user for a new access token asynchronously.
+        /// </summary>
+        /// <param name="cts">
+        /// A cancellation token source.
+        /// </param>
+        /// <returns>
+        /// Returns the Microsoft credentials for the user with an access token.
+        /// </returns>
         public async Task<MSACredentials> ExchangeRefreshTokenAsync(CancellationTokenSource cts = null)
         {
             if (string.IsNullOrWhiteSpace(this.Credentials?.RefreshToken))
@@ -65,7 +74,7 @@
                 throw new ApiException(ApiExceptionCode.AuthenticationError, "No credentials or refresh token exist.");
             }
 
-            var response = await ExchangeAuthCodeAsync(this.Credentials.RefreshToken, true, cts);
+            var response = await this.ExchangeAuthCodeAsync(this.Credentials.RefreshToken, true, cts);
             this.Credentials = response;
 
             return response;
@@ -105,7 +114,7 @@
                           ? $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
                           : $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
 
-            var response = await this.GetAsync<MSACredentials>("", false, uri, cts);
+            var response = await this.GetAsync<MSACredentials>(string.Empty, false, uri, cts);
             this.Credentials = response;
 
             return response;
