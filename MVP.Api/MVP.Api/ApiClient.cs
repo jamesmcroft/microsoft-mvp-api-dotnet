@@ -29,12 +29,23 @@
         /// <param name="subscriptionKey">
         /// The MVP API subscription key.
         /// </param>
-        public ApiClient(string clientId, string clientSecret, string subscriptionKey)
+        public ApiClient(string clientId, string clientSecret, string subscriptionKey, bool isLiveSdkApp = false)
         {
             this.ClientId = clientId;
             this.ClientSecret = clientSecret;
             this.SubscriptionKey = subscriptionKey;
+            this.IsLiveSdkApp = isLiveSdkApp;
         }
+
+        /// <summary>
+        /// Gets a value indicating whether the client ID and secret are from an older Live SDK application.
+        /// </summary>
+        /// <remarks>
+        /// If you're using a newer 'Converged application', this should be false.
+        /// If you're using an older 'Live SDK application', this should be true.
+        /// Find your apps here: https://apps.dev.microsoft.com/?mkt=en-us#/appList
+        /// </remarks>
+        public bool IsLiveSdkApp { get; }
 
         /// <summary>
         /// Gets the Microsoft application client ID.

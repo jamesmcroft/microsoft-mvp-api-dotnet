@@ -61,6 +61,7 @@
     <Compile Include="Models\SocialNetwork.cs" />
     <Compile Include="Models\SocialNetworkStatusCode.cs" />
     <Compile Include="Models\ItemVisibility.cs" />
+    <Compile Include="Networking\Requests\FormUrlEncodedJsonPostNetworkRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

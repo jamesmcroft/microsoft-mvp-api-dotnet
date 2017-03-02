@@ -8,6 +8,7 @@
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Navigation;
 
+    using WinUX.Diagnostics;
     using WinUX.Xaml;
 
     /// <summary>
@@ -40,7 +41,7 @@
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -58,6 +59,7 @@
                     // TODO: Load state from previously suspended application
                 }
 
+                await AppDiagnostics.Current.StartAsync();
                 UIDispatcher.Initialize();
 
                 // Place the frame in the current Window

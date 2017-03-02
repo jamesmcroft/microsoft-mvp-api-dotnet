@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
 
     using MVP.Api.Models.MicrosoftAccount;
+    using MVP.Api.Networking.Requests;
 
     using WinUX;
 
@@ -110,14 +111,74 @@
                     "The auth code for exchange cannot be null or empty.");
             }
 
-            var uri = isTokenRefresh
-                          ? $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
-                          : $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
+            MSACredentials response = null;
 
-            var response = await this.GetAsync<MSACredentials>(string.Empty, false, uri, cts);
+            if (this.IsLiveSdkApp)
+            {
+                var uri = isTokenRefresh
+                              ? $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
+                              : $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
+
+                response = await this.GetAsync<MSACredentials>(string.Empty, false, uri, cts);
+            }
+            else
+            {
+                var data = new List<KeyValuePair<string, string>>
+                               {
+                                   new KeyValuePair<string, string>(
+                                       "client_id",
+                                       this.ClientId),
+                                   new KeyValuePair<string, string>(
+                                       "redirect_uri",
+                                       RedirectUri),
+                                   new KeyValuePair<string, string>(
+                                       "grant_type",
+                                       isTokenRefresh
+                                           ? "refresh_token"
+                                           : "authorization_code"),
+                                   new KeyValuePair<string, string>(
+                                       isTokenRefresh ? "refresh_token" : "code",
+                                       code)
+                               };
+
+                var encodedContent = new FormUrlEncodedContent(data);
+
+                response = await this.PostAuthCodeAsync(encodedContent, cts);
+            }
+
             this.Credentials = response;
 
             return response;
+        }
+
+        private async Task<MSACredentials> PostAuthCodeAsync(
+            FormUrlEncodedContent data,
+            CancellationTokenSource cts = null)
+        {
+            var postRequest = new FormUrlEncodedJsonPostNetworkRequest(new HttpClient(), TokenUri, data);
+
+            var retryCall = false;
+
+            try
+            {
+                return await postRequest.ExecuteAsync<MSACredentials>(cts);
+            }
+            catch (HttpRequestException hre) when (hre.Message.Contains("401"))
+            {
+                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                if (tokenRefreshed != null)
+                {
+                    retryCall = true;
+                }
+            }
+
+            if (retryCall)
+            {
+                postRequest = new FormUrlEncodedJsonPostNetworkRequest(new HttpClient(), TokenUri, data);
+                return await postRequest.ExecuteAsync<MSACredentials>(cts);
+            }
+
+            return default(MSACredentials);
         }
 
         /// <summary>
