@@ -5,10 +5,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using MVP.Api.Models.MicrosoftAccount;
+    using MADE.Networking.Requests.Json;
 
-    using WinUX.Data.Serialization;
-    using WinUX.Networking.Requests.Json;
+    using MVP.Api.Models.MicrosoftAccount;
 
     /// <summary>
     /// Defines a mechanism to call into the MVP API from a client application.
@@ -28,6 +27,9 @@
         /// </param>
         /// <param name="subscriptionKey">
         /// The MVP API subscription key.
+        /// </param>
+        /// <param name="isLiveSdkApp">
+        /// A value indicating whether the client ID and secret are associated with an older Live SDK application.
         /// </param>
         public ApiClient(string clientId, string clientSecret, string subscriptionKey, bool isLiveSdkApp = false)
         {
@@ -73,36 +75,36 @@
             string overrideUri = null,
             CancellationTokenSource cts = null)
         {
-            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+            string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            var getRequest = useCredentials
-                                 ? new JsonGetNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
-                                 : new JsonGetNetworkRequest(new HttpClient(), uri);
+            GetNetworkRequest getRequest = useCredentials
+                                               ? new GetNetworkRequest(uri, this.GetRequestHeaders(), typeof(TResponse))
+                                               : new GetNetworkRequest(uri, typeof(TResponse));
 
-            var retryCall = false;
+            bool retryCall = false;
 
             try
             {
-                return await getRequest.ExecuteAsync<TResponse>(cts);
+                return await getRequest.SendAsync<TResponse>(cts);
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
-                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                MSACredentials tokenRefreshed = await this.ExchangeRefreshTokenAsync();
                 if (tokenRefreshed != null)
                 {
                     retryCall = true;
                 }
             }
 
-            if (retryCall)
+            if (!retryCall)
             {
-                getRequest = useCredentials
-                                 ? new JsonGetNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
-                                 : new JsonGetNetworkRequest(new HttpClient(), uri);
-                return await getRequest.ExecuteAsync<TResponse>(cts);
+                return default(TResponse);
             }
 
-            return default(TResponse);
+            getRequest = useCredentials
+                             ? new GetNetworkRequest(uri, this.GetRequestHeaders(), typeof(TResponse))
+                             : new GetNetworkRequest(uri, typeof(TResponse));
+            return await getRequest.SendAsync<TResponse>(cts);
         }
 
         private async Task<TResponse> PostAsync<TResponse>(
@@ -112,38 +114,40 @@
             string overrideUri = null,
             CancellationTokenSource cts = null)
         {
-            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+            string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            var json = SerializationService.Json.Serialize(data);
+            PostNetworkRequest postRequest = useCredentials
+                                                 ? new PostNetworkRequest(
+                                                     uri,
+                                                     this.GetRequestHeaders(),
+                                                     data,
+                                                     typeof(TResponse))
+                                                 : new PostNetworkRequest(uri, data, typeof(TResponse));
 
-            var postRequest = useCredentials
-                                  ? new JsonPostNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
-                                  : new JsonPostNetworkRequest(new HttpClient(), uri, json);
-
-            var retryCall = false;
+            bool retryCall = false;
 
             try
             {
-                return await postRequest.ExecuteAsync<TResponse>(cts);
+                return await postRequest.SendAsync<TResponse>(cts);
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
-                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                MSACredentials tokenRefreshed = await this.ExchangeRefreshTokenAsync();
                 if (tokenRefreshed != null)
                 {
                     retryCall = true;
                 }
             }
 
-            if (retryCall)
+            if (!retryCall)
             {
-                postRequest = useCredentials
-                                  ? new JsonPostNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
-                                  : new JsonPostNetworkRequest(new HttpClient(), uri, json);
-                return await postRequest.ExecuteAsync<TResponse>(cts);
+                return default(TResponse);
             }
 
-            return default(TResponse);
+            postRequest = useCredentials
+                              ? new PostNetworkRequest(uri, this.GetRequestHeaders(), data, typeof(TResponse))
+                              : new PostNetworkRequest(uri, data, typeof(TResponse));
+            return await postRequest.SendAsync<TResponse>(cts);
         }
 
         private async Task<bool> PutAsync(
@@ -153,40 +157,42 @@
             string overrideUri = null,
             CancellationTokenSource cts = null)
         {
-            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+            string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            var json = SerializationService.Json.Serialize(data);
+            PutNetworkRequest putRequest = useCredentials
+                                               ? new PutNetworkRequest(
+                                                   uri,
+                                                   this.GetRequestHeaders(),
+                                                   data,
+                                                   typeof(bool))
+                                               : new PutNetworkRequest(uri, data, typeof(bool));
 
-            var putRequest = useCredentials
-                                 ? new JsonPutNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
-                                 : new JsonPutNetworkRequest(new HttpClient(), uri, json);
-
-            var retryCall = false;
+            bool retryCall = false;
 
             try
             {
-                await putRequest.ExecuteAsync<bool>(cts);
+                await putRequest.SendAsync<bool>(cts);
                 return true;
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
-                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                MSACredentials tokenRefreshed = await this.ExchangeRefreshTokenAsync();
                 if (tokenRefreshed != null)
                 {
                     retryCall = true;
                 }
             }
 
-            if (retryCall)
+            if (!retryCall)
             {
-                putRequest = useCredentials
-                                 ? new JsonPutNetworkRequest(new HttpClient(), uri, json, this.GetRequestHeaders())
-                                 : new JsonPutNetworkRequest(new HttpClient(), uri, json);
-                await putRequest.ExecuteAsync<bool>(cts);
-                return true;
+                return false;
             }
 
-            return false;
+            putRequest = useCredentials
+                             ? new PutNetworkRequest(uri, this.GetRequestHeaders(), data, typeof(bool))
+                             : new PutNetworkRequest(uri, data, typeof(bool));
+            await putRequest.SendAsync<bool>(cts);
+            return true;
         }
 
         private async Task<bool> DeleteAsync(
@@ -195,56 +201,59 @@
             string overrideUri = null,
             CancellationTokenSource cts = null)
         {
-            var uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
+            string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            var deleteRequest = useCredentials
-                                    ? new JsonDeleteNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
-                                    : new JsonDeleteNetworkRequest(new HttpClient(), uri);
+            DeleteNetworkRequest deleteRequest = useCredentials
+                                                     ? new DeleteNetworkRequest(
+                                                         uri,
+                                                         this.GetRequestHeaders(),
+                                                         typeof(bool))
+                                                     : new DeleteNetworkRequest(uri, typeof(bool));
 
-            var retryCall = false;
+            bool retryCall = false;
 
             try
             {
-                await deleteRequest.ExecuteAsync<bool>(cts);
+                await deleteRequest.SendAsync<bool>(cts);
                 return true;
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
-                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                MSACredentials tokenRefreshed = await this.ExchangeRefreshTokenAsync();
                 if (tokenRefreshed != null)
                 {
                     retryCall = true;
                 }
             }
 
-            if (retryCall)
+            if (!retryCall)
             {
-                deleteRequest = useCredentials
-                                    ? new JsonDeleteNetworkRequest(new HttpClient(), uri, this.GetRequestHeaders())
-                                    : new JsonDeleteNetworkRequest(new HttpClient(), uri);
-                await deleteRequest.ExecuteAsync<bool>(cts);
-                return true;
+                return false;
             }
 
-            return false;
+            deleteRequest = useCredentials
+                                ? new DeleteNetworkRequest(uri, this.GetRequestHeaders(), typeof(bool))
+                                : new DeleteNetworkRequest(uri, typeof(bool));
+            await deleteRequest.SendAsync<bool>(cts);
+            return true;
+
         }
 
         private Dictionary<string, string> GetRequestHeaders()
         {
-            if (!string.IsNullOrWhiteSpace(this.Credentials?.AccessToken))
+            if (this.Credentials == null || string.IsNullOrWhiteSpace(this.Credentials.AccessToken))
             {
-                var headers = new Dictionary<string, string>
-                                  {
-                                      {
-                                          "Authorization",
-                                          $"Bearer {this.Credentials.AccessToken}"
-                                      },
-                                      { "Ocp-Apim-Subscription-Key", this.SubscriptionKey }
-                                  };
-                return headers;
+                return new Dictionary<string, string>();
             }
 
-            return new Dictionary<string, string>();
+            Dictionary<string, string> headers =
+                new Dictionary<string, string>
+                    {
+                        { "Authorization", $"Bearer {this.Credentials.AccessToken}" },
+                        { "Ocp-Apim-Subscription-Key", this.SubscriptionKey }
+                    };
+
+            return headers;
         }
     }
 }

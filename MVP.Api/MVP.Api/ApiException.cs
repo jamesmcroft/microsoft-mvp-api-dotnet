@@ -2,12 +2,10 @@
 {
     using System;
 
-    using WinUX;
-
     public class ApiException : Exception
     {
         public ApiException(ApiExceptionCode code)
-            : this(code, code.GetDescriptionAttribute(), null)
+            : this(code, ApiExceptionMessageAttribute.GetMessage(code), null)
         {
         }
 

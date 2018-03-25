@@ -10,8 +10,6 @@
     using MVP.Api.Models.MicrosoftAccount;
     using MVP.Api.Networking.Requests;
 
-    using WinUX;
-
     public partial class ApiClient
     {
         public const string RedirectUri = "https://login.live.com/oauth20_desktop.srf";
@@ -36,7 +34,9 @@
         /// </returns>
         public string RetrieveAuthenticationUri(IEnumerable<MSAScope> scopes, string redirectUri = null)
         {
-            return this.RetrieveAuthenticationUri(scopes.Select(x => x.GetDescriptionAttribute()), redirectUri);
+            return this.RetrieveAuthenticationUri(
+                scopes.Select(x => MSAScopeNameAttribute.GetScopeName(x)),
+                redirectUri);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@
         /// </returns>
         public string RetrieveAuthenticationUri(IEnumerable<string> scopes, string redirectUri = null)
         {
-            var scopesStr = string.Join(" ", scopes);
+            string scopesStr = string.Join(" ", scopes);
 
             return
                 $"{AuthenticationUri}?redirect_uri={Uri.EscapeUriString(redirectUri ?? RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&scope={Uri.EscapeUriString(scopesStr)}&response_type=code";
@@ -70,12 +70,13 @@
         /// </returns>
         public async Task<MSACredentials> ExchangeRefreshTokenAsync(CancellationTokenSource cts = null)
         {
-            if (string.IsNullOrWhiteSpace(this.Credentials?.RefreshToken))
+            var msaCredentials = this.Credentials;
+            if (msaCredentials == null || string.IsNullOrWhiteSpace(msaCredentials.RefreshToken))
             {
                 throw new ApiException(ApiExceptionCode.AuthenticationError, "No credentials or refresh token exist.");
             }
 
-            var response = await this.ExchangeAuthCodeAsync(this.Credentials.RefreshToken, true, cts);
+            MSACredentials response = await this.ExchangeAuthCodeAsync(this.Credentials.RefreshToken, true, cts);
             this.Credentials = response;
 
             return response;
@@ -111,37 +112,38 @@
                     "The auth code for exchange cannot be null or empty.");
             }
 
-            MSACredentials response = null;
+            MSACredentials response;
 
             if (this.IsLiveSdkApp)
             {
-                var uri = isTokenRefresh
-                              ? $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
-                              : $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
+                string uri = isTokenRefresh
+                                 ? $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
+                                 : $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
 
                 response = await this.GetAsync<MSACredentials>(string.Empty, false, uri, cts);
             }
             else
             {
-                var data = new List<KeyValuePair<string, string>>
-                               {
-                                   new KeyValuePair<string, string>(
-                                       "client_id",
-                                       this.ClientId),
-                                   new KeyValuePair<string, string>(
-                                       "redirect_uri",
-                                       RedirectUri),
-                                   new KeyValuePair<string, string>(
-                                       "grant_type",
-                                       isTokenRefresh
-                                           ? "refresh_token"
-                                           : "authorization_code"),
-                                   new KeyValuePair<string, string>(
-                                       isTokenRefresh ? "refresh_token" : "code",
-                                       code)
-                               };
+                List<KeyValuePair<string, string>> data =
+                    new List<KeyValuePair<string, string>>
+                        {
+                            new KeyValuePair<string, string>(
+                                "client_id",
+                                this.ClientId),
+                            new KeyValuePair<string, string>(
+                                "redirect_uri",
+                                RedirectUri),
+                            new KeyValuePair<string, string>(
+                                "grant_type",
+                                isTokenRefresh
+                                    ? "refresh_token"
+                                    : "authorization_code"),
+                            new KeyValuePair<string, string>(
+                                isTokenRefresh ? "refresh_token" : "code",
+                                code)
+                        };
 
-                var encodedContent = new FormUrlEncodedContent(data);
+                FormUrlEncodedContent encodedContent = new FormUrlEncodedContent(data);
 
                 response = await this.PostAuthCodeAsync(encodedContent, cts);
             }
@@ -155,30 +157,31 @@
             FormUrlEncodedContent data,
             CancellationTokenSource cts = null)
         {
-            var postRequest = new FormUrlEncodedJsonPostNetworkRequest(new HttpClient(), TokenUri, data);
+            FormUrlEncodedJsonPostNetworkRequest postRequest =
+                new FormUrlEncodedJsonPostNetworkRequest(TokenUri, data, typeof(MSACredentials));
 
-            var retryCall = false;
+            bool retryCall = false;
 
             try
             {
-                return await postRequest.ExecuteAsync<MSACredentials>(cts);
+                return await postRequest.SendAsync<MSACredentials>(cts);
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
-                var tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                MSACredentials tokenRefreshed = await this.ExchangeRefreshTokenAsync();
                 if (tokenRefreshed != null)
                 {
                     retryCall = true;
                 }
             }
 
-            if (retryCall)
+            if (!retryCall)
             {
-                postRequest = new FormUrlEncodedJsonPostNetworkRequest(new HttpClient(), TokenUri, data);
-                return await postRequest.ExecuteAsync<MSACredentials>(cts);
+                return default(MSACredentials);
             }
 
-            return default(MSACredentials);
+            postRequest = new FormUrlEncodedJsonPostNetworkRequest(TokenUri, data, typeof(MSACredentials));
+            return await postRequest.SendAsync<MSACredentials>(cts);
         }
 
         /// <summary>
@@ -189,14 +192,14 @@
         /// </returns>
         public async Task<bool> LogOutAsync()
         {
-            var logoutSuccess = false;
+            bool logoutSuccess = false;
             try
             {
-                var uri =
+                string uri =
                     $"{LogOutUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}";
 
-                var client = new HttpClient();
-                var response = await client.GetAsync(uri);
+                HttpClient client = new HttpClient();
+                HttpResponseMessage response = await client.GetAsync(uri);
                 logoutSuccess = response.IsSuccessStatusCode;
             }
             catch (Exception ex)

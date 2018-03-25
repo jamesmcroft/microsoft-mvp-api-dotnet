@@ -40,9 +40,9 @@
 
         private async Task AuthenticateAsync()
         {
-            var scopes = new List<MSAScope> { MSAScope.Basic, MSAScope.Emails, MSAScope.OfflineAccess, MSAScope.SignIn };
+            List<MSAScope> scopes = new List<MSAScope> { MSAScope.Basic, MSAScope.Emails, MSAScope.OfflineAccess, MSAScope.SignIn };
 
-            var authUri = App.API.RetrieveAuthenticationUri(scopes);
+            string authUri = App.API.RetrieveAuthenticationUri(scopes);
 
             var result = await WebAuthenticationBroker.AuthenticateAsync(
                              WebAuthenticationOptions.None,
@@ -53,14 +53,14 @@
             {
                 if (!string.IsNullOrWhiteSpace(result.ResponseData))
                 {
-                    var responseUri = new Uri(result.ResponseData);
+                    Uri responseUri = new Uri(result.ResponseData);
                     if (responseUri.LocalPath.StartsWith("/oauth20_desktop.srf", StringComparison.OrdinalIgnoreCase))
                     {
-                        var error = responseUri.ExtractQueryValue("error");
+                        string error = responseUri.ExtractQueryValue("error");
                         if (string.IsNullOrWhiteSpace(error))
                         {
-                            var authCode = responseUri.ExtractQueryValue("code");
-                            var msaCredentials = await App.API.ExchangeAuthCodeAsync(authCode);
+                            string authCode = responseUri.ExtractQueryValue("code");
+                            MSACredentials msaCredentials = await App.API.ExchangeAuthCodeAsync(authCode);
                         }
                         else
                         {
@@ -91,7 +91,7 @@
         {
             try
             {
-                var onlineIdentities = await App.API.GetOnlineIdentitiesAsync();
+                IEnumerable<OnlineIdentity> onlineIdentities = await App.API.GetOnlineIdentitiesAsync();
             }
             catch (Exception ex)
             {
@@ -133,9 +133,9 @@
             {
                 try
                 {
-                    var ctb = contributions.Items.FirstOrDefault();
+                    Contribution ctb = contributions.Items.FirstOrDefault();
 
-                    var contribution = await App.API.GetContributionByIdAsync(ctb.Id.Value);
+                    Contribution contribution = await App.API.GetContributionByIdAsync(ctb.Id.Value);
                 }
                 catch (Exception ex)
                 {
@@ -160,11 +160,11 @@
 
             if (contributionTypes != null && contributionAreas != null)
             {
-                var contributionType = contributionTypes.FirstOrDefault();
-                var awardContribution = contributionAreas.FirstOrDefault();
-                var area = awardContribution.Areas.FirstOrDefault();
+                ContributionType contributionType = contributionTypes.FirstOrDefault();
+                AwardContribution awardContribution = contributionAreas.FirstOrDefault();
+                ContributionArea area = awardContribution.Areas.FirstOrDefault();
 
-                var technology = new ContributionTechnology
+                ContributionTechnology technology = new ContributionTechnology
                                      {
                                          AwardCategory = awardContribution.AwardCategory,
                                          AwardName = area.AwardName,
@@ -172,7 +172,7 @@
                                          Name = area.Items.FirstOrDefault().Name
                                      };
 
-                var newContribution = new Contribution
+                Contribution newContribution = new Contribution
                                           {
                                               Id = 0,
                                               Type = contributionType,
@@ -215,7 +215,7 @@
 
                     try
                     {
-                        var updated = await App.API.UpdateContributionAsync(submittedContribution);
+                        bool updated = await App.API.UpdateContributionAsync(submittedContribution);
                     }
                     catch (Exception ex)
                     {
@@ -226,7 +226,7 @@
 
                     try
                     {
-                        var deleted = await App.API.DeleteContributionAsync(submittedContribution.Id.Value);
+                        bool deleted = await App.API.DeleteContributionAsync(submittedContribution.Id.Value);
                     }
                     catch (Exception ex)
                     {
@@ -242,7 +242,7 @@
         {
             try
             {
-                var profile = await App.API.GetMyProfileAsync();
+                MVPProfile profile = await App.API.GetMyProfileAsync();
             }
             catch (Exception ex)
             {
@@ -251,7 +251,7 @@
 
             try
             {
-                var profile = await App.API.GetProfileAsync("5001534");
+                MVPProfile profile = await App.API.GetProfileAsync("5001534");
             }
             catch (Exception ex)
             {
@@ -260,7 +260,7 @@
 
             try
             {
-                var profileImage = await App.API.GetMyProfileImageAsync();
+                string profileImage = await App.API.GetMyProfileImageAsync();
             }
             catch (Exception ex)
             {
