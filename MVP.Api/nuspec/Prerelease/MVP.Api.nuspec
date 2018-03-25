@@ -9,7 +9,7 @@
     <licenseUrl>https://github.com/jamesmcroft/mvp-api-portable/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/jamesmcroft/mvp-api-portable</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <iconUrl>https://store-images.s-microsoft.com/image/apps.20340.13696542494072476.a40fa172-7b0a-4f49-a46f-c75e9113ba69.849497eb-9bc0-42f0-b0df-e33720ae8186?w=180&h=180&q=60</iconUrl>
+    <iconUrl>http://www.jimbobbennett.io/content/images/2017/01/MVP_Logo_Avatar_Preferred_Cyan300_CMYK_300ppi.png</iconUrl>
     <description>This library contains an API layer for developing against the Microsoft MVP API for cross-platform applications built with the the .NET framework with support for UWP, Android, iOS and Xamarin.Forms applications.</description>
     <copyright>Copyright © James Croft. All rights reserved.</copyright>
     <tags>Microsoft MVP API NET UWP Android iOS Web PCL</tags>
