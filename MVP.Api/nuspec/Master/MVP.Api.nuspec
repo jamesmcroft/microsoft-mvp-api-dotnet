@@ -19,7 +19,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\MVP.Api\bin\Release\netstandard2.0\MVP.Api.dll" target="lib\netstandard2.0" />
-    <file src="..\MVP.Api\bin\Release\netstandard2.0\MVP.Api.xml" target="lib\netstandard2.0" />
+    <file src="..\..\MVP.Api\bin\Release\netstandard2.0\MVP.Api.dll" target="lib\netstandard2.0" />
+    <file src="..\..\MVP.Api\bin\Release\netstandard2.0\MVP.Api.xml" target="lib\netstandard2.0" />
   </files>
 </package>
