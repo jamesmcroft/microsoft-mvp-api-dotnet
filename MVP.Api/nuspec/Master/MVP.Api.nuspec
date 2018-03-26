@@ -14,7 +14,7 @@
     <copyright>Copyright © James Croft. All rights reserved.</copyright>
     <tags>Microsoft MVP API NET UWP Android iOS Web PCL</tags>
     <dependencies>
-      <dependency id="MADE.Networking" verson="0.1.18084.3-prerelease" />
+      <dependency id="MADE.Networking" version="0.1.18084.3-prerelease" />
       <dependency id="Newtonsoft.Json" version="11.0.1" />
     </dependencies>
   </metadata>
