@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MADE.Networking" Version="0.1.18084.3-prerelease" />
+    <PackageReference Include="MADE.App.Networking" Version="0.1.18196.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 

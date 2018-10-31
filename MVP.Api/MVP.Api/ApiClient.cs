@@ -5,9 +5,11 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using MADE.Networking.Requests.Json;
+    using MADE.App.Networking.Requests.Json;
 
     using MVP.Api.Models.MicrosoftAccount;
+
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Defines a mechanism to call into the MVP API from a client application.
@@ -15,6 +17,8 @@
     public partial class ApiClient
     {
         private const string BaseApiUri = "https://mvpapi.azure-api.net/mvp/api";
+
+        private readonly HttpClient httpClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiClient"/> class.
@@ -37,6 +41,8 @@
             this.ClientSecret = clientSecret;
             this.SubscriptionKey = subscriptionKey;
             this.IsLiveSdkApp = isLiveSdkApp;
+
+            this.httpClient = new HttpClient();
         }
 
         /// <summary>
@@ -77,15 +83,18 @@
         {
             string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            GetNetworkRequest getRequest = useCredentials
-                                               ? new GetNetworkRequest(uri, this.GetRequestHeaders(), typeof(TResponse))
-                                               : new GetNetworkRequest(uri, typeof(TResponse));
+            JsonGetNetworkRequest getRequest = useCredentials
+                                                   ? new JsonGetNetworkRequest(
+                                                       this.httpClient,
+                                                       uri,
+                                                       this.GetRequestHeaders())
+                                                   : new JsonGetNetworkRequest(this.httpClient, uri);
 
             bool retryCall = false;
 
             try
             {
-                return await getRequest.SendAsync<TResponse>(cts);
+                return await getRequest.ExecuteAsync<TResponse>(cts);
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
@@ -102,9 +111,9 @@
             }
 
             getRequest = useCredentials
-                             ? new GetNetworkRequest(uri, this.GetRequestHeaders(), typeof(TResponse))
-                             : new GetNetworkRequest(uri, typeof(TResponse));
-            return await getRequest.SendAsync<TResponse>(cts);
+                             ? new JsonGetNetworkRequest(this.httpClient, uri, this.GetRequestHeaders())
+                             : new JsonGetNetworkRequest(this.httpClient, uri);
+            return await getRequest.ExecuteAsync<TResponse>(cts);
         }
 
         private async Task<TResponse> PostAsync<TResponse>(
@@ -116,19 +125,22 @@
         {
             string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            PostNetworkRequest postRequest = useCredentials
-                                                 ? new PostNetworkRequest(
-                                                     uri,
-                                                     this.GetRequestHeaders(),
-                                                     data,
-                                                     typeof(TResponse))
-                                                 : new PostNetworkRequest(uri, data, typeof(TResponse));
+            JsonPostNetworkRequest postRequest = useCredentials
+                                                     ? new JsonPostNetworkRequest(
+                                                         this.httpClient,
+                                                         uri,
+                                                         JsonConvert.SerializeObject(data),
+                                                         this.GetRequestHeaders())
+                                                     : new JsonPostNetworkRequest(
+                                                         this.httpClient,
+                                                         uri,
+                                                         JsonConvert.SerializeObject(data));
 
             bool retryCall = false;
 
             try
             {
-                return await postRequest.SendAsync<TResponse>(cts);
+                return await postRequest.ExecuteAsync<TResponse>(cts);
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
@@ -145,9 +157,14 @@
             }
 
             postRequest = useCredentials
-                              ? new PostNetworkRequest(uri, this.GetRequestHeaders(), data, typeof(TResponse))
-                              : new PostNetworkRequest(uri, data, typeof(TResponse));
-            return await postRequest.SendAsync<TResponse>(cts);
+                              ? new JsonPostNetworkRequest(
+                                  this.httpClient,
+                                  uri,
+                                  JsonConvert.SerializeObject(data),
+                                  this.GetRequestHeaders())
+                              : new JsonPostNetworkRequest(this.httpClient, uri, JsonConvert.SerializeObject(data));
+
+            return await postRequest.ExecuteAsync<TResponse>(cts);
         }
 
         private async Task<bool> PutAsync(
@@ -159,19 +176,22 @@
         {
             string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            PutNetworkRequest putRequest = useCredentials
-                                               ? new PutNetworkRequest(
-                                                   uri,
-                                                   this.GetRequestHeaders(),
-                                                   data,
-                                                   typeof(bool))
-                                               : new PutNetworkRequest(uri, data, typeof(bool));
+            JsonPutNetworkRequest putRequest = useCredentials
+                                                   ? new JsonPutNetworkRequest(
+                                                       this.httpClient,
+                                                       uri,
+                                                       JsonConvert.SerializeObject(data),
+                                                       this.GetRequestHeaders())
+                                                   : new JsonPutNetworkRequest(
+                                                       this.httpClient,
+                                                       uri,
+                                                       JsonConvert.SerializeObject(data));
 
             bool retryCall = false;
 
             try
             {
-                await putRequest.SendAsync<bool>(cts);
+                await putRequest.ExecuteAsync<string>(cts);
                 return true;
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
@@ -189,9 +209,13 @@
             }
 
             putRequest = useCredentials
-                             ? new PutNetworkRequest(uri, this.GetRequestHeaders(), data, typeof(bool))
-                             : new PutNetworkRequest(uri, data, typeof(bool));
-            await putRequest.SendAsync<bool>(cts);
+                             ? new JsonPutNetworkRequest(
+                                 this.httpClient,
+                                 uri,
+                                 JsonConvert.SerializeObject(data),
+                                 this.GetRequestHeaders())
+                             : new JsonPutNetworkRequest(this.httpClient, uri, JsonConvert.SerializeObject(data));
+            await putRequest.ExecuteAsync<string>(cts);
             return true;
         }
 
@@ -203,18 +227,18 @@
         {
             string uri = string.IsNullOrWhiteSpace(overrideUri) ? $"{BaseApiUri}/{endpoint}" : overrideUri;
 
-            DeleteNetworkRequest deleteRequest = useCredentials
-                                                     ? new DeleteNetworkRequest(
-                                                         uri,
-                                                         this.GetRequestHeaders(),
-                                                         typeof(bool))
-                                                     : new DeleteNetworkRequest(uri, typeof(bool));
+            JsonDeleteNetworkRequest deleteRequest = useCredentials
+                                                         ? new JsonDeleteNetworkRequest(
+                                                             this.httpClient,
+                                                             uri,
+                                                             this.GetRequestHeaders())
+                                                         : new JsonDeleteNetworkRequest(this.httpClient, uri);
 
             bool retryCall = false;
 
             try
             {
-                await deleteRequest.SendAsync<bool>(cts);
+                await deleteRequest.ExecuteAsync<string>(cts);
                 return true;
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
@@ -232,9 +256,9 @@
             }
 
             deleteRequest = useCredentials
-                                ? new DeleteNetworkRequest(uri, this.GetRequestHeaders(), typeof(bool))
-                                : new DeleteNetworkRequest(uri, typeof(bool));
-            await deleteRequest.SendAsync<bool>(cts);
+                                ? new JsonDeleteNetworkRequest(this.httpClient, uri, this.GetRequestHeaders())
+                                : new JsonDeleteNetworkRequest(this.httpClient, uri);
+            await deleteRequest.ExecuteAsync<string>(cts);
             return true;
 
         }
@@ -246,12 +270,11 @@
                 return new Dictionary<string, string>();
             }
 
-            Dictionary<string, string> headers =
-                new Dictionary<string, string>
-                    {
-                        { "Authorization", $"Bearer {this.Credentials.AccessToken}" },
-                        { "Ocp-Apim-Subscription-Key", this.SubscriptionKey }
-                    };
+            Dictionary<string, string> headers = new Dictionary<string, string>
+                                                     {
+                                                         { "Authorization", $"Bearer {this.Credentials.AccessToken}" },
+                                                         { "Ocp-Apim-Subscription-Key", this.SubscriptionKey }
+                                                     };
 
             return headers;
         }

@@ -158,13 +158,13 @@
             CancellationTokenSource cts = null)
         {
             FormUrlEncodedJsonPostNetworkRequest postRequest =
-                new FormUrlEncodedJsonPostNetworkRequest(TokenUri, data, typeof(MSACredentials));
+                new FormUrlEncodedJsonPostNetworkRequest(this.httpClient, TokenUri, data);
 
             bool retryCall = false;
 
             try
             {
-                return await postRequest.SendAsync<MSACredentials>(cts);
+                return await postRequest.ExecuteAsync<MSACredentials>(cts);
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
@@ -180,8 +180,8 @@
                 return default(MSACredentials);
             }
 
-            postRequest = new FormUrlEncodedJsonPostNetworkRequest(TokenUri, data, typeof(MSACredentials));
-            return await postRequest.SendAsync<MSACredentials>(cts);
+            postRequest = new FormUrlEncodedJsonPostNetworkRequest(this.httpClient,TokenUri, data);
+            return await postRequest.ExecuteAsync<MSACredentials>(cts);
         }
 
         /// <summary>
@@ -204,9 +204,10 @@
             }
             catch (Exception ex)
             {
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-#endif
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                }
             }
             finally
             {

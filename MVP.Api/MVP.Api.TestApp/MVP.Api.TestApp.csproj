@@ -11,7 +11,7 @@
     <AssemblyName>MVP.Api.TestApp</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.16299.0</TargetPlatformVersion>
+    <TargetPlatformVersion>10.0.17763.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
@@ -124,11 +124,11 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MADE.Networking">
-      <Version>0.1.18084.3-prerelease</Version>
+    <PackageReference Include="MADE.App.Networking">
+      <Version>0.1.18196.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.0.8</Version>
+      <Version>6.1.9</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>11.0.2</Version>

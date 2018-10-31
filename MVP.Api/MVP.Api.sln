@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVP.Api.TestApp", "MVP.Api.TestApp\MVP.Api.TestApp.csproj", "{6E3E8DE4-4051-49BD-93A0-2FB678FD50B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVP.Api", "MVP.Api\MVP.Api.csproj", "{748B1815-3301-4518-9CEF-8235BA1B6EFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MVP.Api", "MVP.Api\MVP.Api.csproj", "{748B1815-3301-4518-9CEF-8235BA1B6EFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +20,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6E3E8DE4-4051-49BD-93A0-2FB678FD50B5}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{6E3E8DE4-4051-49BD-93A0-2FB678FD50B5}.Debug|Any CPU.Build.0 = Debug|x86
+		{6E3E8DE4-4051-49BD-93A0-2FB678FD50B5}.Debug|Any CPU.Deploy.0 = Debug|x86
 		{6E3E8DE4-4051-49BD-93A0-2FB678FD50B5}.Debug|ARM.ActiveCfg = Debug|ARM
 		{6E3E8DE4-4051-49BD-93A0-2FB678FD50B5}.Debug|ARM.Build.0 = Debug|ARM
 		{6E3E8DE4-4051-49BD-93A0-2FB678FD50B5}.Debug|ARM.Deploy.0 = Debug|ARM

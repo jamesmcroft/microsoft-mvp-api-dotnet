@@ -16,11 +16,11 @@
     /// </summary>
     public sealed partial class App : Application
     {
-        public const string ClientId = "INSERT_CLIENT_ID";
+        public const string ClientId = "f32a38ca-fb37-4d98-b51e-d159fb26d53f";
 
-        public const string ClientSecret = "INSERT_CLIENT_SECRET";
+        public const string ClientSecret = "Foqtoi0nWBKdkze3UgLm8QD";
 
-        public const string SubscriptionKey = "INSERT_SUBSCRIPTION_KEY";
+        public const string SubscriptionKey = "151ee67f81c142f2a51edd318dc5be7d";
 
         public static ApiClient API { get; set; }
 
