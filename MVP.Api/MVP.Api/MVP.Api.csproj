@@ -2,6 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Version>1.0.0.0</Version>
+    <Authors>James Croft</Authors>
+    <Company>James Croft</Company>
+    <Product>Microsoft MVP API</Product>
+    <Description>Brings this Microsoft MVP API layer for developing community MVP apps built with the .NET framework providing cross-platform support for Windows, Android and iOS.</Description>
+    <Copyright>Copyright © James Croft. All rights reserved.</Copyright>
+    <PackageLicenseUrl>https://github.com/jamesmcroft/MS-MVP-API-PCL/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/jamesmcroft/MS-MVP-API-PCL</PackageProjectUrl>
+    <PackageIconUrl>http://www.jimbobbennett.io/content/images/2017/01/MVP_Logo_Avatar_Preferred_Cyan300_CMYK_300ppi.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/jamesmcroft/MS-MVP-API-PCL</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Microsoft MVP API NET Windows UWP Android iOS Web Xamarin</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
