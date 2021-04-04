@@ -6,14 +6,14 @@ on:
       - release/**
   push:
     branches:
-    - master
+    - main
     paths:
     - src/**
     - samples/**
     - .github/workflows/ci.yml
   pull_request:
     branches:
-    - master
+    - main
     paths:
     - src/**
     - samples/**
