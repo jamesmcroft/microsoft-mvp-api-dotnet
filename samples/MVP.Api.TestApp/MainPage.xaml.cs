@@ -1,4 +1,4 @@
-﻿namespace MVP.Api.TestApp
+namespace MVP.Api.TestApp
 {
     using System;
     using System.Collections.Generic;
@@ -12,23 +12,32 @@
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Navigation;
-
-    using WinUX;
-    using WinUX.Messaging.Dialogs;
+    using MADE.Data.Validation.Extensions;
+    using MADE.Networking.Extensions;
+    using Newtonsoft.Json;
+    using XPlat.Storage;
 
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        private const string CredentialsFileName = "credentials.json";
+
         public MainPage()
         {
             this.InitializeComponent();
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+
+            IStorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(CredentialsFileName, true);
+            string credentialsJson = await file.ReadTextAsync();
+            App.API.Credentials = credentialsJson.IsNullOrWhiteSpace()
+                ? null
+                : JsonConvert.DeserializeObject<MSACredentials>(credentialsJson);
 
             this.UpdateButtonStates();
         }
@@ -40,11 +49,11 @@
 
         private async Task AuthenticateAsync()
         {
-            List<MSAScope> scopes = new List<MSAScope> { MSAScope.Basic, MSAScope.Emails, MSAScope.OfflineAccess, MSAScope.SignIn };
+            var scopes = new List<MSAScope> { MSAScope.Basic, MSAScope.Emails, MSAScope.OfflineAccess, MSAScope.SignIn };
 
             string authUri = App.API.RetrieveAuthenticationUri(scopes);
 
-            var result = await WebAuthenticationBroker.AuthenticateAsync(
+            WebAuthenticationResult result = await WebAuthenticationBroker.AuthenticateAsync(
                              WebAuthenticationOptions.None,
                              new Uri(authUri),
                              new Uri(ApiClient.RedirectUri));
@@ -53,18 +62,20 @@
             {
                 if (!string.IsNullOrWhiteSpace(result.ResponseData))
                 {
-                    Uri responseUri = new Uri(result.ResponseData);
+                    var responseUri = new Uri(result.ResponseData);
                     if (responseUri.LocalPath.StartsWith("/oauth20_desktop.srf", StringComparison.OrdinalIgnoreCase))
                     {
-                        string error = responseUri.ExtractQueryValue("error");
+                        string error = responseUri.GetQueryValue("error");
                         if (string.IsNullOrWhiteSpace(error))
                         {
-                            string authCode = responseUri.ExtractQueryValue("code");
+                            string authCode = responseUri.GetQueryValue("code");
                             MSACredentials msaCredentials = await App.API.ExchangeAuthCodeAsync(authCode);
+                            IStorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(CredentialsFileName, CreationCollisionOption.OpenIfExists);
+                            await file.WriteTextAsync(JsonConvert.SerializeObject(msaCredentials));
                         }
                         else
                         {
-                            await MessageDialogManager.Current.ShowAsync(error);
+                            await App.MessageDialogManager.ShowAsync(error);
                         }
                     }
                 }
@@ -80,11 +91,51 @@
             this.UpdateButtonStates();
         }
 
-        private async void OnPerformApiTestClicked(object sender, RoutedEventArgs e)
+        private async void OnPerformProfileApiTestsClicked(object sender, RoutedEventArgs e)
         {
             await TestProfileAsync();
-            await TestContributionAsync();
+        }
+
+        private async void OnPerformOnlineIdentityApiTestsClicked(object sender, RoutedEventArgs e)
+        {
             await TestOnlineIdentityAsync();
+        }
+
+        private async void OnPerformContributionApiTestsClicked(object sender, RoutedEventArgs e)
+        {
+            await TestContributionAsync();
+        }
+
+        private async void OnPerformAwardQuestionApiTestsClicked(object sender, RoutedEventArgs e)
+        {
+            await TestAwardQuestionAsync();
+        }
+
+        private static async Task TestAwardQuestionAsync()
+        {
+            try
+            {
+                IEnumerable<AwardQuestion> awardQuestions = await App.API.GetCurrentAwardQuestionsAsync();
+            }
+            catch (Exception ex)
+            {
+                await App.MessageDialogManager.ShowAsync(
+                    "Error",
+                    $"Error in GetCurrentAwardQuestionsAsync method. Error: {ex}");
+                return;
+            }
+
+            try
+            {
+                IEnumerable<AwardQuestionAnswer> answers = await App.API.GetAwardQuestionAnswersAsync();
+            }
+            catch (Exception ex)
+            {
+                await App.MessageDialogManager.ShowAsync(
+                    "Error",
+                    $"Error in GetAwardQuestionAnswersAsync method. Error: {ex}");
+                return;
+            }
         }
 
         private static async Task TestOnlineIdentityAsync()
@@ -95,15 +146,30 @@
             }
             catch (Exception ex)
             {
-                await MessageDialogManager.Current.ShowAsync(
+                await App.MessageDialogManager.ShowAsync(
                     "Error",
                     $"Error in GetOnlineIdentitiesAsync method. Error: {ex}");
+                return;
             }
         }
 
         private static async Task TestContributionAsync()
         {
-            IEnumerable<AwardContribution> contributionAreas = null;
+            IEnumerable<ItemVisibility> visibilities;
+
+            try
+            {
+                visibilities = await App.API.GetSharingPreferencesAsync();
+            }
+            catch (Exception ex)
+            {
+                await App.MessageDialogManager.ShowAsync(
+                    "Error",
+                    $"Error in {nameof(ApiClient.GetSharingPreferencesAsync)} method. Error: {ex}");
+                return;
+            }
+
+            IEnumerable<AwardContribution> contributionAreas;
 
             try
             {
@@ -111,12 +177,13 @@
             }
             catch (Exception ex)
             {
-                await MessageDialogManager.Current.ShowAsync(
+                await App.MessageDialogManager.ShowAsync(
                     "Error",
                     $"Error in GetContributionAreasAsync method. Error: {ex}");
+                return;
             }
 
-            Contributions contributions = null;
+            Contributions contributions;
 
             try
             {
@@ -124,9 +191,10 @@
             }
             catch (Exception ex)
             {
-                await MessageDialogManager.Current.ShowAsync(
+                await App.MessageDialogManager.ShowAsync(
                     "Error",
                     $"Error in GetContributionsAsync method. Error: {ex}");
+                return;
             }
 
             if (contributions != null)
@@ -139,13 +207,14 @@
                 }
                 catch (Exception ex)
                 {
-                    await MessageDialogManager.Current.ShowAsync(
+                    await App.MessageDialogManager.ShowAsync(
                         "Error",
                         $"Error in GetContributionByIdAsync method. Error: {ex}");
+                    return;
                 }
             }
 
-            IEnumerable<ContributionType> contributionTypes = null;
+            IEnumerable<ContributionType> contributionTypes;
 
             try
             {
@@ -153,9 +222,10 @@
             }
             catch (Exception ex)
             {
-                await MessageDialogManager.Current.ShowAsync(
+                await App.MessageDialogManager.ShowAsync(
                     "Error",
                     $"Error in GetContributionTypesAsync method. Error: {ex}");
+                return;
             }
 
             if (contributionTypes != null && contributionAreas != null)
@@ -164,7 +234,7 @@
                 AwardContribution awardContribution = contributionAreas.FirstOrDefault();
                 ContributionArea area = awardContribution.Areas.FirstOrDefault();
 
-                ContributionTechnology technology = new ContributionTechnology
+                var technology = new ContributionTechnology
                                      {
                                          AwardCategory = awardContribution.AwardCategory,
                                          AwardName = area.AwardName,
@@ -172,9 +242,8 @@
                                          Name = area.Items.FirstOrDefault().Name
                                      };
 
-                Contribution newContribution = new Contribution
+                var newContribution = new Contribution
                                           {
-                                              Id = 0,
                                               Type = contributionType,
                                               TypeName = contributionType.Name,
                                               Technology = technology,
@@ -182,21 +251,14 @@
                                               Title = "MVP API Test",
                                               ReferenceUrl =
                                                   "https://github.com/jamesmcroft/mvp-api-portable",
-                                              Visibility =
-                                                  new ItemVisibility
-                                                      {
-                                                          Id = 299600000,
-                                                          Description = "Everyone",
-                                                          LocalizeKey =
-                                                              "PublicVisibilityText"
-                                                      },
+                                              Visibility = visibilities.FirstOrDefault(),
                                               AnnualQuantity = 0,
                                               SecondAnnualQuantity = 0,
                                               AnnualReach = 0,
                                               Description = "Hello, World!"
                                           };
 
-                Contribution submittedContribution = null;
+                Contribution submittedContribution;
 
                 try
                 {
@@ -204,9 +266,10 @@
                 }
                 catch (Exception ex)
                 {
-                    await MessageDialogManager.Current.ShowAsync(
+                    await App.MessageDialogManager.ShowAsync(
                         "Error",
                         $"Error in AddContributionAsync method. Error: {ex}");
+                    return;
                 }
 
                 if (submittedContribution != null)
@@ -219,9 +282,10 @@
                     }
                     catch (Exception ex)
                     {
-                        await MessageDialogManager.Current.ShowAsync(
+                        await App.MessageDialogManager.ShowAsync(
                             "Error",
                             $"Error in UpdateContributionAsync method. Error: {ex}");
+                        return;
                     }
 
                     try
@@ -230,9 +294,10 @@
                     }
                     catch (Exception ex)
                     {
-                        await MessageDialogManager.Current.ShowAsync(
+                        await App.MessageDialogManager.ShowAsync(
                             "Error",
                             $"Error in DeleteContributionAsync method. Error: {ex}");
+                        return;
                     }
                 }
             }
@@ -246,7 +311,8 @@
             }
             catch (Exception ex)
             {
-                await MessageDialogManager.Current.ShowAsync("Error", $"Error in GetMyProfileAsync method. Error: {ex}");
+                await App.MessageDialogManager.ShowAsync("Error", $"Error in GetMyProfileAsync method. Error: {ex}");
+                return;
             }
 
             try
@@ -255,7 +321,8 @@
             }
             catch (Exception ex)
             {
-                await MessageDialogManager.Current.ShowAsync("Error", $"Error in GetProfileAsync method. Error: {ex}");
+                await App.MessageDialogManager.ShowAsync("Error", $"Error in GetProfileAsync method. Error: {ex}");
+                return;
             }
 
             try
@@ -264,9 +331,10 @@
             }
             catch (Exception ex)
             {
-                await MessageDialogManager.Current.ShowAsync(
+                await App.MessageDialogManager.ShowAsync(
                     "Error",
                     $"Error in GetMyProfileImageAsync method. Error: {ex}");
+                return;
             }
         }
 
@@ -275,13 +343,19 @@
             if (App.API.Credentials != null)
             {
                 this.LoginBtn.IsEnabled = false;
-                this.PerformApiTestBtn.IsEnabled = true;
+                this.AwardQuestionBtn.IsEnabled = true;
+                this.ContributionBtn.IsEnabled = true;
+                this.OnlineIdentityBtn.IsEnabled = true;
+                this.ProfileBtn.IsEnabled = true;
                 this.LogoutBtn.IsEnabled = true;
             }
             else
             {
                 this.LoginBtn.IsEnabled = true;
-                this.PerformApiTestBtn.IsEnabled = false;
+                this.AwardQuestionBtn.IsEnabled = false;
+                this.ContributionBtn.IsEnabled = false;
+                this.OnlineIdentityBtn.IsEnabled = false;
+                this.ProfileBtn.IsEnabled = false;
                 this.LogoutBtn.IsEnabled = false;
             }
         }

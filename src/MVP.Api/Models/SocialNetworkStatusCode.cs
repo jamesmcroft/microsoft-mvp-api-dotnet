@@ -4,10 +4,8 @@ namespace MVP.Api.Models
 
     public class SocialNetworkStatusCode
     {
-        [JsonProperty("Id")]
-        public int? Id { get; set; }
+        [JsonProperty("Id")] public int? Id { get; set; }
 
-        [JsonProperty("Description")]
-        public string Description { get; set; }
+        [JsonProperty("Description")] public string Description { get; set; }
     }
 }

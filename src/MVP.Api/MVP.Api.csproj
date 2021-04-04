@@ -3,32 +3,40 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Product>Microsoft MVP API Library</Product>
+    <Description>
+      A C# API wrapper that allows application to be built for the Microsoft MVP API. 
+    </Description>
+    <PackageTags>Microsoft MVP API Windows Android iOS Web Xamarin Uno</PackageTags>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Version>1.0.0.0</Version>
     <Authors>James Croft</Authors>
     <Company>James Croft</Company>
-    <Product>Microsoft MVP API</Product>
-    <Description>Brings this Microsoft MVP API layer for developing community MVP apps built with the .NET framework providing cross-platform support for Windows, Android and iOS.</Description>
     <Copyright>Copyright © James Croft. All rights reserved.</Copyright>
-    <PackageLicenseUrl>https://github.com/jamesmcroft/MS-MVP-API-PCL/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/jamesmcroft/MS-MVP-API-PCL</PackageProjectUrl>
-    <PackageIconUrl>http://www.jimbobbennett.io/content/images/2017/01/MVP_Logo_Avatar_Preferred_Cyan300_CMYK_300ppi.png</PackageIconUrl>
-    <RepositoryUrl>https://github.com/jamesmcroft/MS-MVP-API-PCL</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>Microsoft MVP API NET Windows UWP Android iOS Web Xamarin</PackageTags>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netstandard2.0\MVP.Api.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netstandard2.0\MVP.Api.xml</DocumentationFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageIcon>ProjectLogo.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/jamesmcroft/MS-MVP-API-PCL/releases</PackageReleaseNotes>
+    <NeutralLanguage>en</NeutralLanguage>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MADE.App.Networking" Version="0.1.18196.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="MADE.Networking" Version="1.0.0-preview2" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\ProjectLogo.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>

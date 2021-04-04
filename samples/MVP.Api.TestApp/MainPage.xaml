@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="MVP.Api.TestApp.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -29,9 +29,27 @@
                 Style="{StaticResource CenteredButtonStyle}" />
 
             <Button
-                x:Name="PerformApiTestBtn"
-                Click="OnPerformApiTestClicked"
-                Content="Perform API tests"
+                x:Name="ProfileBtn"
+                Click="OnPerformProfileApiTestsClicked"
+                Content="Perform Profile tests"
+                Style="{StaticResource CenteredButtonStyle}" />
+
+            <Button
+                x:Name="ContributionBtn"
+                Click="OnPerformContributionApiTestsClicked"
+                Content="Perform Contribution tests"
+                Style="{StaticResource CenteredButtonStyle}" />
+
+            <Button
+                x:Name="OnlineIdentityBtn"
+                Click="OnPerformOnlineIdentityApiTestsClicked"
+                Content="Perform Online Identity tests"
+                Style="{StaticResource CenteredButtonStyle}" />
+
+            <Button
+                x:Name="AwardQuestionBtn"
+                Click="OnPerformAwardQuestionApiTestsClicked"
+                Content="Perform Award Question tests"
                 Style="{StaticResource CenteredButtonStyle}" />
 
             <Button

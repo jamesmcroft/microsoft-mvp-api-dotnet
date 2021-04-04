@@ -6,13 +6,10 @@ namespace MVP.Api.Models
 
     public class ActivityType
     {
-        [JsonProperty("Id")]
-        public Guid? Id { get; set; }
+        [JsonProperty("Id")] public Guid? Id { get; set; }
 
-        [JsonProperty("Name")]
-        public string Name { get; set; }
+        [JsonProperty("Name")] public string Name { get; set; }
 
-        [JsonProperty("EnglishName")]
-        public string EnglishName { get; set; }
+        [JsonProperty("EnglishName")] public string EnglishName { get; set; }
     }
 }

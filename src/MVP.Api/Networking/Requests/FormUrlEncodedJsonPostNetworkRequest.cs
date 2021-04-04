@@ -1,13 +1,11 @@
-﻿namespace MVP.Api.Networking.Requests
+namespace MVP.Api.Networking.Requests
 {
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using MADE.App.Networking.Requests;
-
+    using MADE.Networking.Http.Requests;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -68,30 +66,32 @@
         public FormUrlEncodedContent Data { get; set; }
 
         /// <summary>Executes the network request.</summary>
-        /// <param name="cts">The cancellation token source.</param>
         /// <typeparam name="TResponse">
         /// The type of object returned from the request.
         /// </typeparam>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         /// Returns the response of the request as the specified type.
         /// </returns>
-        public override async Task<TResponse> ExecuteAsync<TResponse>(CancellationTokenSource cts = null)
+        public override async Task<TResponse> ExecuteAsync<TResponse>(CancellationToken cancellationToken = default)
         {
-            return JsonConvert.DeserializeObject<TResponse>(await this.GetJsonResponse(cts));
+            return JsonConvert.DeserializeObject<TResponse>(await this.GetJsonResponseAsync(cancellationToken));
         }
 
         /// <summary>Executes the network request.</summary>
         /// <param name="expectedResponse">
         /// The type expected by the response of the request.
         /// </param>
-        /// <param name="cts">The cancellation token source.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Returns the response of the request as an object.</returns>
-        public override async Task<object> ExecuteAsync(Type expectedResponse, CancellationTokenSource cts = null)
+        public override async Task<object> ExecuteAsync(
+            Type expectedResponse,
+            CancellationToken cancellationToken = default)
         {
-            return JsonConvert.DeserializeObject(await this.GetJsonResponse(cts), expectedResponse);
+            return JsonConvert.DeserializeObject(await this.GetJsonResponseAsync(cancellationToken), expectedResponse);
         }
 
-        private async Task<string> GetJsonResponse(CancellationTokenSource cts)
+        private async Task<string> GetJsonResponseAsync(CancellationToken cancellationToken = default)
         {
             if (this.client == null)
             {
@@ -104,8 +104,8 @@
                 throw new InvalidOperationException("No URL has been specified for executing the network request.");
             }
 
-            Uri uri = new Uri(this.Url);
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uri) { Content = this.Data };
+            var uri = new Uri(this.Url);
+            var request = new HttpRequestMessage(HttpMethod.Post, uri) { Content = this.Data };
 
             if (this.Headers != null)
             {
@@ -115,14 +115,10 @@
                 }
             }
 
-            HttpResponseMessage response = cts == null
-                                               ? await this.client.SendAsync(
-                                                     request,
-                                                     HttpCompletionOption.ResponseHeadersRead)
-                                               : await this.client.SendAsync(
-                                                     request,
-                                                     HttpCompletionOption.ResponseHeadersRead,
-                                                     cts.Token);
+            HttpResponseMessage response = await this.client.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
 
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();

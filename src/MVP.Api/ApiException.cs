@@ -1,4 +1,4 @@
-﻿namespace MVP.Api
+namespace MVP.Api
 {
     using System;
 

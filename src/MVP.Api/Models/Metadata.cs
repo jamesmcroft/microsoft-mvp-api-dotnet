@@ -4,16 +4,12 @@ namespace MVP.Api.Models
 
     public class Metadata
     {
-        [JsonProperty("PageTitle")]
-        public string PageTitle { get; set; }
+        [JsonProperty("PageTitle")] public string PageTitle { get; set; }
 
-        [JsonProperty("TemplateName")]
-        public string TemplateName { get; set; }
+        [JsonProperty("TemplateName")] public string TemplateName { get; set; }
 
-        [JsonProperty("Keywords")]
-        public string Keywords { get; set; }
+        [JsonProperty("Keywords")] public string Keywords { get; set; }
 
-        [JsonProperty("Description")]
-        public string Description { get; set; }
+        [JsonProperty("Description")] public string Description { get; set; }
     }
 }

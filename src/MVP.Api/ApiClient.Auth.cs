@@ -1,4 +1,4 @@
-﻿namespace MVP.Api
+namespace MVP.Api
 {
     using System;
     using System.Collections.Generic;
@@ -62,21 +62,23 @@
         /// <summary>
         /// Exchanges the stored refresh token for the authenticated user for a new access token asynchronously.
         /// </summary>
-        /// <param name="cts">
-        /// A cancellation token source.
+        /// <param name="cancellationToken">
+        /// A cancellation token.
         /// </param>
         /// <returns>
         /// Returns the Microsoft credentials for the user with an access token.
         /// </returns>
-        public async Task<MSACredentials> ExchangeRefreshTokenAsync(CancellationTokenSource cts = null)
+        /// <exception cref="T:MVP.Api.AccountCredentialsMissingException">Thrown if no credentials or refresh token exist.</exception>
+        /// <exception cref="T:MVP.Api.AuthCodeMissingException">Thrown if the auth code for exchange is null or empty.</exception>
+        public async Task<MSACredentials> ExchangeRefreshTokenAsync(CancellationToken cancellationToken = default)
         {
-            var msaCredentials = this.Credentials;
+            MSACredentials msaCredentials = this.Credentials;
             if (msaCredentials == null || string.IsNullOrWhiteSpace(msaCredentials.RefreshToken))
             {
-                throw new ApiException(ApiExceptionCode.AuthenticationError, "No credentials or refresh token exist.");
+                throw new AccountCredentialsMissingException("No credentials or refresh token exist.");
             }
 
-            MSACredentials response = await this.ExchangeAuthCodeAsync(this.Credentials.RefreshToken, true, cts);
+            MSACredentials response = await this.ExchangeAuthCodeAsync(this.Credentials.RefreshToken, true, cancellationToken);
             this.Credentials = response;
 
             return response;
@@ -91,25 +93,21 @@
         /// <param name="isTokenRefresh">
         /// A value indicating whether the code is a refresh token.
         /// </param>
-        /// <param name="cts">
-        /// A cancellation token source.
+        /// <param name="cancellationToken">
+        /// A cancellation token.
         /// </param>
         /// <returns>
         /// Returns the Microsoft credentials for the user with an access token.
         /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if the code for exchanging is null or empty.
-        /// </exception>
+        /// <exception cref="T:MVP.Api.AuthCodeMissingException">Thrown if the auth code for exchange is null or empty.</exception>
         public async Task<MSACredentials> ExchangeAuthCodeAsync(
             string code,
             bool isTokenRefresh = false,
-            CancellationTokenSource cts = null)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(code))
             {
-                throw new ApiException(
-                    ApiExceptionCode.AuthenticationError,
-                    "The auth code for exchange cannot be null or empty.");
+                throw new AuthCodeMissingException("The auth code for exchange cannot be null or empty.");
             }
 
             MSACredentials response;
@@ -120,11 +118,11 @@
                                  ? $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&refresh_token={Uri.EscapeUriString(code)}&grant_type=refresh_token"
                                  : $"{TokenUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}&client_secret={Uri.EscapeUriString(this.ClientSecret)}&code={Uri.EscapeUriString(code)}&grant_type=authorization_code";
 
-                response = await this.GetAsync<MSACredentials>(string.Empty, false, uri, cts);
+                response = await this.GetAsync<MSACredentials>(string.Empty, false, uri, cancellationToken);
             }
             else
             {
-                List<KeyValuePair<string, string>> data =
+                var data =
                     new List<KeyValuePair<string, string>>
                         {
                             new KeyValuePair<string, string>(
@@ -135,17 +133,15 @@
                                 RedirectUri),
                             new KeyValuePair<string, string>(
                                 "grant_type",
-                                isTokenRefresh
-                                    ? "refresh_token"
-                                    : "authorization_code"),
+                                isTokenRefresh ? "refresh_token" : "authorization_code"),
                             new KeyValuePair<string, string>(
                                 isTokenRefresh ? "refresh_token" : "code",
                                 code)
                         };
 
-                FormUrlEncodedContent encodedContent = new FormUrlEncodedContent(data);
+                var encodedContent = new FormUrlEncodedContent(data);
 
-                response = await this.PostAuthCodeAsync(encodedContent, cts);
+                response = await this.PostAuthCodeAsync(encodedContent, cancellationToken);
             }
 
             this.Credentials = response;
@@ -155,20 +151,20 @@
 
         private async Task<MSACredentials> PostAuthCodeAsync(
             FormUrlEncodedContent data,
-            CancellationTokenSource cts = null)
+            CancellationToken cancellationToken = default)
         {
-            FormUrlEncodedJsonPostNetworkRequest postRequest =
+            var postRequest =
                 new FormUrlEncodedJsonPostNetworkRequest(this.httpClient, TokenUri, data);
 
             bool retryCall = false;
 
             try
             {
-                return await postRequest.ExecuteAsync<MSACredentials>(cts);
+                return await postRequest.ExecuteAsync<MSACredentials>(cancellationToken);
             }
             catch (HttpRequestException hre) when (hre.Message.Contains("401"))
             {
-                MSACredentials tokenRefreshed = await this.ExchangeRefreshTokenAsync();
+                MSACredentials tokenRefreshed = await this.ExchangeRefreshTokenAsync(cancellationToken);
                 if (tokenRefreshed != null)
                 {
                     retryCall = true;
@@ -177,11 +173,11 @@
 
             if (!retryCall)
             {
-                return default(MSACredentials);
+                return default;
             }
 
-            postRequest = new FormUrlEncodedJsonPostNetworkRequest(this.httpClient,TokenUri, data);
-            return await postRequest.ExecuteAsync<MSACredentials>(cts);
+            postRequest = new FormUrlEncodedJsonPostNetworkRequest(this.httpClient, TokenUri, data);
+            return await postRequest.ExecuteAsync<MSACredentials>(cancellationToken);
         }
 
         /// <summary>
@@ -198,16 +194,13 @@
                 string uri =
                     $"{LogOutUri}?redirect_uri={Uri.EscapeUriString(RedirectUri)}&client_id={Uri.EscapeUriString(this.ClientId)}";
 
-                HttpClient client = new HttpClient();
+                var client = new HttpClient();
                 HttpResponseMessage response = await client.GetAsync(uri);
                 logoutSuccess = response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (System.Diagnostics.Debugger.IsAttached)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.ToString());
-                }
+                // ignored
             }
             finally
             {

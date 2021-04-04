@@ -1,4 +1,4 @@
-﻿namespace MVP.Api
+namespace MVP.Api
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -10,48 +10,50 @@
         private const string ProfileEndpoint = "profile";
 
         /// <summary>
-        /// Gets the MVP profile for the authenticated user asynchronously.
+        /// Gets the profile details for the authenticated user.
         /// </summary>
-        /// <param name="cts">
-        /// Optional, a cancellation token source.
-        /// </param>
-        /// <returns>
-        /// Returns the MVP profile.
-        /// </returns>
-        public async Task<MVPProfile> GetMyProfileAsync(CancellationTokenSource cts = null)
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>A <see cref="MVPProfile"/> object.</returns>
+        public async Task<MVPProfile> GetMyProfileAsync(
+            CancellationToken cancellationToken = default)
         {
-            return await this.GetAsync<MVPProfile>(ProfileEndpoint, true, null, cts);
+            return await this.GetAsync<MVPProfile>(
+                ProfileEndpoint,
+                true,
+                null,
+                cancellationToken);
         }
 
         /// <summary>
-        /// Gets the MVP profile image for the authenticated user as a base64 string asynchronously.
+        /// Gets the profile image for the authenticated user as a base64 string.
         /// </summary>
-        /// <param name="cts">
-        /// Optional, a cancellation token source.
-        /// </param>
-        /// <returns>
-        /// Returns an image as a base64 string.
-        /// </returns>
-        public async Task<string> GetMyProfileImageAsync(CancellationTokenSource cts = null)
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>A base64 string containing the image data.</returns>
+        public async Task<string> GetMyProfileImageAsync(
+            CancellationToken cancellationToken = default)
         {
-            return await this.GetAsync<string>($"{ProfileEndpoint}/photo", true, null, cts);
+            return await this.GetAsync<string>(
+                $"{ProfileEndpoint}/photo",
+                true,
+                null,
+                cancellationToken);
         }
 
         /// <summary>
-        /// Gets an MVP profile for another MVP by their MVP ID asynchronously.
+        /// Gets the profile details for another MVP.
         /// </summary>
-        /// <param name="mvpId">
-        /// The MVP ID, e.g. 5001534.
-        /// </param>
-        /// <param name="cts">
-        /// Optional, a cancellation token source.
-        /// </param>
-        /// <returns>
-        /// Returns the MVP profile.
-        /// </returns>
-        public async Task<MVPProfile> GetProfileAsync(string mvpId, CancellationTokenSource cts = null)
+        /// <param name="mvpId">The MVP ID, e.g. 5001534.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>A <see cref="MVPProfile"/> object.</returns>
+        public async Task<MVPProfile> GetProfileAsync(
+            string mvpId,
+            CancellationToken cancellationToken = default)
         {
-            return await this.GetAsync<MVPProfile>($"{ProfileEndpoint}/{mvpId}", true, null, cts);
+            return await this.GetAsync<MVPProfile>(
+                $"{ProfileEndpoint}/{mvpId}",
+                true,
+                null,
+                cancellationToken);
         }
     }
 }
