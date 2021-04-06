@@ -28,15 +28,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MADE.Networking" Version="1.0.0-preview2" />
+    <PackageReference Include="MADE.Networking" Version="1.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\assets\ProjectLogo.png" Pack="true" PackagePath=""/>
-    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+    <None Include="..\..\assets\ProjectLogo.png" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
