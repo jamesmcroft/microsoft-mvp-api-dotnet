@@ -2,6 +2,10 @@
 
 Microsoft MVP API is a .NET Standard library for making requests to the Microsoft MVP API that works for apps built with .NET.
 
+## Important notice
+
+On April 29th 2022, Microsoft announced the decommissioning of the Microsoft MVP Portal API. This library is archived to serve as a reference and will no longer be maintained.
+
 ## Support Microsoft MVP API ♥
 
 As many developers know, projects like Microsoft MVP API are built and maintained in spare time. If you find this project useful, please **Star** the repo. 
